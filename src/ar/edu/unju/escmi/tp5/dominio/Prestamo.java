@@ -29,4 +29,8 @@ public class Prestamo {
         libro.mostrarDatos();
         usuario.mostrarDatos();
     }
+    
+    public int getId() {
+        return id;
+    }
 }

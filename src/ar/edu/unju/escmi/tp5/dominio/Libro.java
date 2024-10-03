@@ -26,4 +26,8 @@ public class Libro {
     public void setEstado(boolean estado) {
         this.estado = estado;
     }
+
+    public int getId() {
+        return id;
+    }
 }
