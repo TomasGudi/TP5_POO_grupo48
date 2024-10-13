@@ -6,6 +6,7 @@ import ar.edu.unju.escmi.tp5.exceptions.*;
 import ar.edu.unju.escmi.tp5.utils.FechaUtil;
 
 import java.time.LocalDate;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -16,37 +17,42 @@ public class Main {
         int opcion = 0;
 
         do {
-            System.out.println("MENU:");
-            System.out.println("1 - Registrar libro");
-            System.out.println("2 - Registrar usuario");
-            System.out.println("3 - Préstamo de libro");
-            System.out.println("4 - Devolución de libro");
-            System.out.println("5 - Listar libros disponibles");
-            System.out.println("6 - Salir");
-            System.out.print("Seleccione una opción: ");
-            opcion = scanner.nextInt();
+        	try {
+        		System.out.println("MENU:");
+        		System.out.println("1 - Registrar libro");
+        		System.out.println("2 - Registrar usuario");
+        		System.out.println("3 - Préstamo de libro");
+        		System.out.println("4 - Devolución de libro");
+        		System.out.println("5 - Listar libros disponibles");
+        		System.out.println("6 - Salir");
+        		System.out.print("Seleccione una opción: ");
+        		opcion = scanner.nextInt();
 
-            switch (opcion) {
-                case 1:
-                    registrarLibro(scanner);
-                    break;
-                case 2:
-                    registrarUsuario(scanner);
-                    break;
-                case 3:
-                    prestarLibro(scanner);
-                    break;
-                case 4:
-                    devolverLibro(scanner);
-                    break;
-                case 5:
-                    listarLibrosDisponibles();
-                    break;
-                case 6:
-                    System.out.println("Saliendo...");
-                    break;
-                default:
-                    System.out.println("Opción no válida.");
+        		switch (opcion) {
+                	case 1:
+                		registrarLibro(scanner);
+                		break;
+                	case 2:
+                		registrarUsuario(scanner);
+                		break;
+                	case 3:
+                		prestarLibro(scanner);
+                		break;
+                	case 4:
+                		devolverLibro(scanner);
+                		break;
+                	case 5:
+                		listarLibrosDisponibles();
+                		break;
+                	case 6:
+                		System.out.println("Saliendo...");
+                		break;
+                	default:
+                		System.out.println("Opción no válida.");
+        		}
+        	} catch (InputMismatchException e) {
+                System.out.println("Error: Se debe ingresar un numero valido.");
+                scanner.next();
             }
         } while (opcion != 6);
         
@@ -79,52 +85,68 @@ public class Main {
         System.out.print("Email: ");
         String email = scanner.next();
         
-        if (tipoUsuario == 1) {
-            System.out.print("Curso: ");
-            String curso = scanner.next();
-            System.out.print("Número de libreta: ");
-            int libreta = scanner.nextInt();
-            Alumno alumno = new Alumno(CollectionUsuario.usuarios.size() + 1, nombre, apellido, email, curso, libreta);
-            CollectionUsuario.agregarUsuario(alumno);
-            System.out.println("Alumno registrado con éxito.");
-        } else {
-            System.out.print("Legajo: ");
-            int legajo = scanner.nextInt();
-            Bibliotecario bibliotecario = new Bibliotecario(CollectionUsuario.usuarios.size() + 1, nombre, apellido, email, legajo);
-            CollectionUsuario.agregarUsuario(bibliotecario);
-            System.out.println("Bibliotecario registrado con éxito.");
+        try {
+        	if (tipoUsuario == 1) {
+            	System.out.print("Curso: ");
+            	String curso = scanner.next();
+            	System.out.print("Número de libreta: ");
+            	int libreta = scanner.nextInt();
+            	Alumno alumno = new Alumno(CollectionUsuario.usuarios.size() + 1, nombre, apellido, email, curso, libreta);
+            	CollectionUsuario.agregarUsuario(alumno);
+            	System.out.println("Alumno registrado con éxito.");
+        	} else {
+            	System.out.print("Legajo: ");
+            	int legajo = scanner.nextInt();
+            	Bibliotecario bibliotecario = new Bibliotecario(CollectionUsuario.usuarios.size() + 1, nombre, apellido, email, legajo);
+            	CollectionUsuario.agregarUsuario(bibliotecario);
+            	System.out.println("Bibliotecario registrado con éxito.");
+        	}
+        } catch (InputMismatchException e) {
+            System.out.println("Error: Debes ingresar un número válido para la libreta o legajo.");
+            scanner.next();  
         }
     }
 
     private static void prestarLibro(Scanner scanner) {
         System.out.println("Préstamo de libro:");
-        System.out.print("ID del libro: ");
-        int idLibro = scanner.nextInt();
+        int idLibro = -1;
+        Libro libro = null;
         
-        try {
-            Libro libro = CollectionLibro.buscarLibroPorID(idLibro);
-            if (libro == null) {
-                throw new LibroNoEncontradoException("El libro con ID " + idLibro + " no se encuentra en la biblioteca.");
+        while (libro == null) {
+            try {
+                System.out.print("ID del libro: ");
+                idLibro = scanner.nextInt();
+                libro = CollectionLibro.buscarLibroPorID(idLibro);
+                if (libro == null) {
+                    throw new LibroNoEncontradoException("El libro con ID " + idLibro + " no se encuentra en la biblioteca.");
+                }
+                if (!libro.isDisponible()) {
+                    throw new LibroNoDisponibleException("El libro no está disponible para préstamo.");
+                }
+            } catch (LibroNoEncontradoException | LibroNoDisponibleException e) {
+                System.out.println("Error: " + e.getMessage());
+                libro = null;
+            } catch (InputMismatchException e) {
+                System.out.println("Error: Debes ingresar un número válido.");
+                scanner.next(); 
+                libro = null;  
             }
-            if (!libro.isDisponible()) {
-                throw new LibroNoDisponibleException("El libro no está disponible para préstamo.");
-            }
+        }
 
-            System.out.print("ID del usuario: ");
-            int idUsuario = scanner.nextInt();
-            Usuario usuario = CollectionUsuario.buscarUsuarioPorID(idUsuario);
-            
+        System.out.print("ID del usuario: ");
+        int idUsuario = scanner.nextInt();
+        Usuario usuario = CollectionUsuario.buscarUsuarioPorID(idUsuario);
+
+        try {
             if (usuario == null) {
                 throw new UsuarioNoRegistradoException("El usuario con ID " + idUsuario + " no está registrado.");
             }
-
             LocalDate fechaPrestamo = LocalDate.now();
             Prestamo prestamo = new Prestamo(CollectionPrestamo.prestamos.size() + 1, fechaPrestamo, libro, usuario);
             CollectionPrestamo.registrarPrestamo(prestamo);
-            libro.setEstado(false);  // El libro ahora no está disponible
+            libro.setEstado(false);
             System.out.println("Préstamo registrado con éxito.");
-
-        } catch (LibroNoEncontradoException | LibroNoDisponibleException | UsuarioNoRegistradoException e) {
+        } catch (UsuarioNoRegistradoException e) {
             System.out.println("Error: " + e.getMessage());
         }
     }

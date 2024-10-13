@@ -6,7 +6,6 @@ import java.time.format.DateTimeParseException;
 
 public class FechaUtil {
 
-    //metodo para pasar de string a formato dd/MM/yyyy
     public static LocalDate convertirStringLocalDate(String fechaStr) throws IllegalArgumentException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         
